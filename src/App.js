@@ -1,16 +1,28 @@
-import React from 'react';
-import GameOfLife from './components/gameOfLiveCanvas'
-import Blog from './components/gameOfLife'
+import React, { useState } from 'react';
+import GameOfLife from './components/GameOfLife'
+import Blog from './components/Blog'
+import About from './components/About'
 import NavBar from './components/NavBar';
 import { BrowserRouter as Router, Switch, Route, HashRouter } from 'react-router-dom'
+import Home from './components/Home';
 function App() {
+  const [gameState, setGameState] = useState(() => {
+    return {
+      isMusicOn: false,
+      gameInitialization: null
+    }
+  })
   return (
     <HashRouter>
-        <Route path="/" component={NavBar}/>
-        <Route path="/:id" component={NavBar}/>
-        <Route exact path="/blog" component={Blog}/>
-        <Route exact path="/" component={GameOfLife}/>
-        <Route exact path="/home" component={GameOfLife}/>
+      <GameOfLife gameState={gameState} />
+      <Route path="/" component={NavBar} />
+      <Route path="/:id" component={NavBar} />
+      <Switch>
+
+        <Route exact path="/blog" component={Blog} />
+        <Route exact path="/about" component={About} />
+        <Route path="/" render={() => <Home setGameState={setGameState}></Home>} />
+      </Switch>
     </HashRouter>
   );
 }

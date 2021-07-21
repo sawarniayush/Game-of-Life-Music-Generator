@@ -1,33 +1,28 @@
-import { useState, useEffect , useRef} from "react";
-import  {initializations} from "./livingThings";
-import  * as Tone from 'tone';
+import { useState, useEffect, useRef } from "react";
+import { initializations } from "./livingThings";
+import * as Tone from 'tone';
 
+const RESOLUTION = 20
 
-
-let initializeGame = () => {
+let initializeGrid = (numRows, numCols) => {
     console.log("initializing life")
-    const numCols = 50;
-    const width = window.innerWidth;
-    const boxSize = parseInt(width / (numCols - 1))
-    const height = window.innerHeight;
-    const numRows = parseInt(height / boxSize) + 1;
+    // const numCols = 50;
+    // const width = window.innerWidth;
+    // const boxSize = parseInt(width / (numCols - 1))
+    // const height = window.innerHeight;
+    // const numRows = parseInt(height / boxSize) + 1;
     const grid = [...Array(numRows)].map(_ => Array(numCols).fill(0));
     // let modulo = Math.floor(1 + Math.random()*(8))
     initializations[0].initialize(grid)
 
-    return {
-        boxSize: boxSize,
-        numCols: numCols,
-        numRows: numRows,
-        grid: grid
-    }
+    return grid
 }
 
-let createNextGeneration = (state) => {
-    const newGrid = [...Array(state.numRows)].map(_ => Array(state.numCols).fill(0));
-    const oldGrid = state.grid
-    const r = state.numRows
-    const c = state.numCols
+let createNextGeneration = (oldGrid) => {
+    
+    const r = oldGrid.length
+    const c = oldGrid[0].length
+    const newGrid = [...Array(r)].map(_ => Array(c).fill(0));
     for (let i = 0; i < r; i++) {
         let ui = (r + i - 1) % r
         let li = (r + i + 1) % r
@@ -42,62 +37,103 @@ let createNextGeneration = (state) => {
                 newGrid[i][j] = 1
         }
     }
-    return {
-        boxSize: state.boxSize,
-        numCols: c,
-        numRows: r,
-        grid: newGrid
-    }
+    return newGrid;
 }
+
+const canvasColors= {
+    0:"#6B7280",
+    1:"#393E46",
+    2:"#3B82F6",
+    3:"#6B7280",
+    4:"#6B7280",
+    5:"#6B7280",
+    6:"#6B7280"
+
+}
+let renderCanvas = ((ctx, grid) => {
+    for (let col = 0; col < grid.length; col++) {
+      for (let row = 0; row < grid[col].length; row++) {
+        const cell = grid[col][row]
+        const color = canvasColors[(row+col)%6]
+        ctx.beginPath()
+        ctx.rect(col * RESOLUTION, row * RESOLUTION, RESOLUTION, RESOLUTION)
+        ctx.fillStyle = cell ? color : '#FFF'
+        ctx.fill()
+      }
+    }
+  })
 
 
 export default function GameOfLife(props) {
 
-    let [game, setGame] = useState(initializeGame)
-
-
+    // let [grid, setGrid] = useState(initializeGame)
+    let grid = useRef(null)
+    console.log(grid)
+    let ref = useRef(null)
+    let canvasRef = useRef(null)
+    let windowUpdated = useRef(true)
+    console.log("rerendering component")
     //Setting up Stuff
     useEffect(() => {
         // setup up window resize 
         // Tone.start()
+
         console.log("starting  game setup")
-        
-        const updateFunction = () => setGame(initializeGame)
-        window.addEventListener("resize", updateFunction)
-        // window.addEventListener('click', async () => {
-        //     ref.current=new Tone.MembraneSynth().toDestination();
-        //     await Tone.start()
-        // })
-        // console.log("playing music??")
-        const interval = setInterval(() => {
-            // if(ref.current)
-            // ref.current.triggerAttackRelease("A1", "8n");
-            setGame((game)=>createNextGeneration(game))
-        }, 10)
+        const canvas = canvasRef.current
+        const ctx = canvas.getContext('2d')
+        const setupGrid = () => {
+            
+            canvas.width = window.innerWidth
+            canvas.height = window.innerHeight
+            console.log(  canvas)
+            const numCols = Math.round(canvas.width / RESOLUTION)
+            const numRows = Math.round(canvas.height / RESOLUTION)
+            grid.current = initializeGrid(numCols, numRows)
+            renderCanvas(ctx, grid.current)
+        }
+        // const updateFunction = () => setGame(() => initializeGrid)
+        setupGrid()
+        const windowUpdateFunction= () => {
+            console.log("windowResized")
+            windowUpdated.current=true
+        }
+        window.addEventListener("resize", windowUpdateFunction)
+        let prevTimestamp=null
+        const update = (timestamp) => {
+            if (!prevTimestamp) {
+                prevTimestamp = timestamp
+            }
+            if (timestamp - prevTimestamp > 500) {
+                if(windowUpdated.current){
+                    windowUpdated.current=false
+                    setupGrid()
+                }
+                prevTimestamp = timestamp
+                grid.current = createNextGeneration(grid.current)
+                renderCanvas(ctx, grid.current)
+            }
+            window.requestAnimationFrame(update)
+        }
+        window.requestAnimationFrame(update)
 
         console.log("game setup is done")
         return () => {
-            window.removeEventListener("resize", updateFunction)
-            clearInterval(interval)
+            window.removeEventListener("resize", windowUpdateFunction)
+            // clearInterval(interval)
         }
     }, [])
 
-    console.log( "just before return")
+    console.log("just before return")
     return (
-
-          
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${game.numCols},${game.boxSize}px)`, gridTemplateRows: `repeat(${game.numRows},${game.boxSize}px)` }} >
-            {
-                game.grid.flatMap((row, i) =>
-                    row.map((elem, j) => {
-                        let color = (i + j) % 3 ? "bg-black" : "bg-gray-400"
-                        return elem === 1 ?
-                            <div key = {`${i}:${j}`}  className={`bg-pink-100`}  ></div>
-                            : <div  key = {`${i}:${j}`} className=""></div >
-                    }
-                    )
-                )
-            }
-        </div>
+        <canvas
+            id='game-of-life'
+            ref={canvasRef}
+            style={{
+                position: 'absolute',
+                left: 0,
+                bottom: 0,
+                zIndex: -1
+            }}
+        />
     )
 }
