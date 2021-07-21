@@ -47,7 +47,7 @@ let renderCanvas = ((ctx, grid) => {
 
         ctx.beginPath()
         ctx.rect(col * RESOLUTION, row * RESOLUTION, RESOLUTION, RESOLUTION)
-        ctx.fillStyle = cell ? 'black' : '#FFF'
+        ctx.fillStyle = cell ? '#6B7280' : '#FFF'
         ctx.fill()
       }
     }
@@ -93,7 +93,7 @@ export default function GameOfLife(props) {
             if (!prevTimestamp) {
                 prevTimestamp = timestamp
             }
-            if (timestamp - prevTimestamp > 10) {
+            if (timestamp - prevTimestamp > 500) {
                 if(windowUpdated.current){
                     windowUpdated.current=false
                     setupGrid()

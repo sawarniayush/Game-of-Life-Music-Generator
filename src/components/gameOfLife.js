@@ -92,7 +92,7 @@ export default function GameOfLife(props) {
                     row.map((elem, j) => {
                         let color = (i + j) % 3 ? "bg-black" : "bg-gray-400"
                         return elem === 1 ?
-                            <div key = {`${i}:${j}`}  className={`bg-black`}  ></div>
+                            <div key = {`${i}:${j}`}  className={`bg-pink-100`}  ></div>
                             : <div  key = {`${i}:${j}`} className=""></div >
                     }
                     )

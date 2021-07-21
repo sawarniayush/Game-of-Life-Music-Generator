@@ -1,9 +1,11 @@
 module.exports = {
   purge: [],
   purge: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
-  darkMode: false, // or 'media' or 'class'
+  darkMode: 'media', // or 'media' or 'class'
   theme: {
-    extend: {},
+    fontFamily: {
+      sans: [   "Consolas",  '"Liberation Mono"','"Courier New"', "monospace","ui-monospace","SFMono-Regular", "Menlo", "Monaco",  ]
+    },
   },
   variants: {
     extend: {},
