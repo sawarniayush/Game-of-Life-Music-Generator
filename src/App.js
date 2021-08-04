@@ -9,16 +9,18 @@ function App() {
   const [gameState, setGameState] = useState(() => {
     return {
       isMusicOn: false,
-      gameInitialization: null
+      isAnimationOn: true,
+      initialization: null
     }
   })
   return (
     <HashRouter>
-      <GameOfLife gameState={gameState} />
-      <Route path="/" component={NavBar} />
-      <Route path="/:id" component={NavBar} />
-      <Switch>
+      <GameOfLife gameState={gameState}/>
+      <Route exact path="/" component={NavBar} />
+      <Route exact path="/:id" component={NavBar} />
 
+
+      <Switch>
         <Route exact path="/blog" component={Blog} />
         <Route exact path="/about" component={About} />
         <Route path="/" render={() => <Home setGameState={setGameState}></Home>} />
